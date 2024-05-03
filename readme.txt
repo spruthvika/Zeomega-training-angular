@@ -13,7 +13,7 @@ To install the project, follow these steps:
 
 2. Navigate to the products folder:
 
-    cd Zeomega-training-angular/products
+    cd Zeomega-training-angular/
 
 3. Start the JSON server using the json-server package:
 
@@ -25,6 +25,6 @@ To install the project, follow these steps:
 To open the Angular app with Live Server in Visual Studio Code, follow these steps:
 
 1.Open Visual Studio Code and navigate to the root of the project (Zeomega-training-angular).
-2.Find the product.html file located in the products folder.
+2.Find the product.html file located in the Zeomega-training-angular folder.
 3.Right-click on the product.html file and select "Open with Live Server".
 4.The Angular app should now open in your default web browser using Live Server.
