@@ -2,37 +2,37 @@
   "products": [
     {
       "id": 1,
-      "name": "Product 1",
-      "cost": 10
+      "name": "Laptop",
+      "cost": 90
     },
     {
       "id": 2,
-      "name": "Product 2",
-      "cost": 20
+      "name": "Mobile",
+      "cost": 80
     },
     {
       "id": 3,
-      "name": "Product 3",
-      "cost": 30
+      "name": "TV",
+      "cost": 100
     },
     {
-      "name": "product 4",
-      "cost": 10,
+      "name": "EARPHONES",
+      "cost": 20,
       "id": 4
     },
     {
-      "name": "product 5",
-      "cost": 10,
+      "name": "AC",
+      "cost": 70,
       "id": 5
     },
     {
-      "name": "product 6",
+      "name": "WATCH",
       "cost": 20,
       "id": 6
     },
     {
-      "name": "product 7",
-      "cost": 20,
+      "name": "REFRIGERATOR",
+      "cost": 120,
       "id": 7
     }
   ]
