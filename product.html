@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Store</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script>
+        var appProduct = angular.module('appProduct', []);
+        appProduct.service("productService", function($http){
+            var baseUrl = "http://localhost:3030/products";
+            this.products = [];
+            this.cartProducts = [];
+            this.cartTotal = 0;
+
+            // Get products from the server
+            this.getProducts = function() {
+                return $http.get(baseUrl)
+                            .then(function(response) {
+                                this.products = response.data; // Update products array
+                                return response.data;
+                            }.bind(this)); // Bind the context
+            }
+
+            // Add new product to the server
+            this.addNewProduct = function (productname, productprice) {
+                var newProduct = {
+                    name: productname,
+                    cost: productprice
+                };
+
+                return $http.post(baseUrl, newProduct)
+                            .then(function(response) {
+                                this.products.push(response.data); // Add new product to array
+                                return response.data;
+                            }.bind(this)); // Bind the context
+            }
+
+            this.addToCart = function (id) {
+                var existingProduct = this.cartProducts.find(function(item) { // Find product by id
+                    return item.id === id;
+                });
+
+                // If the product is already in the cart, increase its quantity
+                if (existingProduct) {
+                    existingProduct.cartProductQuantity++;
+                    this.totalCart(); // Recalculate cart total
+                } else {
+                    var product = this.products.find(function(item) { // Find product by id
+                        return item.id === id;
+                    });
+
+                    // If the product is valid, add it to the cart
+                    if (product) {
+                        this.cartProducts.push({
+                            id: product.id,
+                            cartProductname: product.name,
+                            cartProductprice: product.cost,
+                            cartProductQuantity: 1
+                        });
+                        this.totalCart(); // Recalculate cart total
+                    }
+                }
+            }
+
+            // Calculate cart total
+            this.totalCart = function (){
+                this.cartTotal = this.cartProducts.reduce(function(total, product) {
+                    return total + (product.cartProductprice * product.cartProductQuantity);
+                }, 0);
+            }
+
+            this.removeFromCart = function (idx){
+                var index = this.cartProducts.findIndex(function(item) {
+                    return item.id === idx;
+                });
+                if (index !== -1) {
+                    // confirmation message is displayed before removing the product from cart
+                    var confirmMsg = confirm('Do you want to remove Product from cart.');
+                    if (confirmMsg){
+                        var removedProduct = this.cartProducts[index];
+                        var removedProductTotal = removedProduct.cartProductprice * removedProduct.cartProductQuantity;
+                        this.cartTotal -= removedProductTotal;
+                        this.cartProducts.splice(index, 1);
+                    }
+                }
+            }
+
+            //to calculate cart total after incrementing the product quantity
+            this.increment = function (idx) {
+                var product = this.cartProducts.find(function(item) {
+                    return item.id === idx;
+                });
+                if (product) {
+                    product.cartProductQuantity++;
+                    this.totalCart(); // Recalculate cart total
+                }
+            }
+
+            //to calculate cart total after decrementing the product quantity
+            this.decrement = function (idx) {
+                var product = this.cartProducts.find(function(item) {
+                    return item.id === idx;
+                });
+                if (product && product.cartProductQuantity > 1) {
+                    product.cartProductQuantity--;
+                    this.totalCart(); // Recalculate cart total
+                }
+            }
+
+        }) 
+
+        appProduct.controller("productController", function($scope, productService){
+            $scope.products = [];
+            $scope.cartProducts = productService.cartProducts;
+            $scope.cartTotal = productService.cartTotal;
+            $scope.productname = '';
+            $scope.productprice='';
+
+            // Get products from the server
+            productService.getProducts().then(function(data) {
+                $scope.products = data;
+            });
+
+            $scope.addNewProduct = function() {
+                productService.addNewProduct($scope.productname, $scope.productprice).then(function(data) {
+                    $scope.products.push(data);
+                    $scope.productname = '';
+                    $scope.productprice = '';
+                });
+            }
+
+            $scope.addToCart = function(id) {
+                productService.addToCart(id);
+                $scope.cartTotal = productService.cartTotal;
+            }
+
+            $scope.removeFromCart = function(idx) {
+                productService.removeFromCart(idx);
+                $scope.cartTotal = productService.cartTotal;
+            }
+
+            $scope.increment = function (id){
+                productService.increment(id);
+                $scope.cartTotal = productService.cartTotal
+            }
+
+            $scope.decrement = function (id){
+                productService.decrement(id);
+                $scope.cartTotal = productService.cartTotal
+            }
+        })
+    </script>
+</head>
+<body ng-app="appProduct" ng-controller="productController">
+    <header>
+        <h1>Online Store</h1>
+    </header>    
+    
+    <!-- Product search -->
+    <div id="search-form">
+        <label for="search-term">Search:</label>
+        <input type="text" id="search-term" ng-model="searchProduct.name" required>
+    </div>
+    
+    <!-- Product Form -->
+    <form id="product-form" ng-submit="addNewProduct()">
+        <label for="product-name">Product Name:</label>
+        <input type="text" id="product-name" ng-model="productname" required>
+        <label for="product-price">Price:</label>
+        <input type="number" id="product-price" ng-model="productprice" min="0" step="1" required>
+        <button type="submit">Add Product</button>
+    </form>    
+
+
+    <!-- Product Cards -->
+    <div class="product-grid">
+        <div class="product-card" id="product1" ng-repeat="product in products | filter: searchProduct track by product.id">
+            <h3>{{product.name}}</h3>
+            <p>${{product.cost}}</p>
+            <button ng-click="addToCart(product.id)">Add to Cart</button>
+        </div>
+    </div>
+
+    <!-- Shopping Cart -->
+    <div class="cart" id="cart">
+        <h2 class="cart-header">Shopping Cart</h2>
+        <div id="cart-items" ng-repeat="cart in cartProducts" >
+            <div>
+                <h3>{{cart.cartProductname}}</h3>
+                <p>${{cart.cartProductprice}}</p>
+                <label for="product-quantity">Product Quantity:</label>
+                <button id="increment" ng-click="increment(cart.id)">+</button>
+                {{cart.cartProductQuantity}}
+                <button id="decrement" ng-click="decrement(cart.id)">-</button>
+                <br>
+                <button ng-click="removeFromCart(cart.id)">Remove</button>
+                <hr>    
+            </div>
+        </div>
+        <p class="cart-total">Total: ${{cartTotal}}</p>
+    </div>
+    
+</body>
+</html>
